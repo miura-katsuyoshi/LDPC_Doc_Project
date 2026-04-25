@@ -36,7 +36,7 @@ L(r_{m \to n}) = \left( \prod_{n' \in \mathcal{N}(m) \setminus \{n\}} \text{sgn}
 ++++
 L(q_{n \to m}) = L(q_n) + \sum_{m' \in \mathcal{M}(n) \setminus \{m\}} L(r_{m' \to n})
 ++++
-※特定の CN stem:[m] へ送る情報は、*その CN 自身から受け取った情報を除いた*合計値となります。
+※特定の CN stem:[m] へ送る情報は、 *その CN 自身から受け取った情報を除いた* 合計値となります。
 
 ==== 事後 LLR (判定用) の計算
 [stem]

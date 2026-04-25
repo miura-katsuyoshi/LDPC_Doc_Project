@@ -1,0 +1,12 @@
+= LDPC デコーダ Offset Min-Sum アルゴリズム解説
+:description: LDPCデコーダ設計のための技術ドキュメント
+
+include::attributes.adoc[]
+
+include::01_intro/index.adoc[]
+
+include::02_basics/index.adoc[]
+
+include::03_algorithm/index.adoc[]
+
+include::04_hw_design/index.adoc[]
