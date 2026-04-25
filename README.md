@@ -1,6 +1,6 @@
 # LDPC Decoder OMS Algorithm Document Project
 
-ATSC 3.0 ASIC開発における LDPC デコーダ（Offset Min-Sum アルゴリズム）の理解と、後進へのナレッジ継承を目的としたドキュメントプロジェクトです。
+ATSC 3.0 ASIC開発における LDPC デコーダ（Offset Min-Sum アルゴリズム）の理解と、新規参加者への技術継承を目的としたドキュメントプロジェクトです。
 
 ## 📖 プロジェクトの目的
 *   **技術の明文化**: Offset Min-Sum (OMS) アルゴリズムの詳細とハードウェア実装への落とし込みを体系化する。
@@ -18,18 +18,20 @@ ATSC 3.0 ASIC開発における LDPC デコーダ（Offset Min-Sum アルゴリ�
 | **AI（レビュー）** | **真田** | 技術的観点からのレビュー、実装上の課題指摘 |
 
 ## 🛠 ツールと形式
-*   **ドキュメント形式**: Asciidoc
+*   **ポータル**: README.md（GitHub/GitLabでの閲覧性を優先し、本ファイルのみMarkdown形式とする）
+*   **ドキュメント本体**: Asciidoc (`docs/*.adoc`)
 *   **数式**: LaTeX 形式 (`stem` を使用)
 *   **図表**: PlantUML / Mermaid / Python (Matplotlib)
-*   **管理**: Git によるバージョン管理
 
 ## 📂 フォルダ構成
-*   `docs/`: ドキュメントソース本体（章ごとに分割管理）
+*   `docs/`: ドキュメントソース本体。`index.adoc` が親ファイルとなります。
 *   `figures/`: 図表、グラフ生成スクリプト
-    *   `scripts/` 内のスクリプトはグラフ生成専用とする。
+    *   `scripts/` 内のスクリプトは、ドキュメント掲載用のグラフ生成専用とします。
 *   `references/`: 参考文献リスト
-    *   著作権保護のためPDF本体はリポジトリに含めない。
-    *   URL、DOI、BibTeX情報を管理する。
+    *   著作権保護のためPDF本体は含めず、URLやBibTeX情報を管理します。
+
+## ⚙️ 環境構築
+ドキュメントのビルド（HTML/PDF出力）には `Asciidoctor` が必要です。詳細は `docs/00_setup.adoc`（予定）を参照してください。
 
 ## 🚀 ワークフロー
 1.  **古代**が各章のドラフト（主案）を執筆。
