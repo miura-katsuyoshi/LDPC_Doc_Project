@@ -1,0 +1,53 @@
+include::../attributes.adoc[]
+
+== LDPC復号アルゴリズム：SPA から OMS へ
+
+本章では、高精度な *Sum-Product Algorithm (SPA)* から、ASIC実装に最適な *Offset Min-Sum (OMS) アルゴリズム* への進化と、その演算プロセスの詳細を解説します。
+
+=== 1. 復号の基本サイクル
+
+LDPC復号は、タナーグラフ上の *変数ノード (VN)* と *チェックノード (CN)* の間でメッセージを反復的に交換することで行われます。1回の反復（Iteration）は、以下の2つのステップで構成されます。
+
+1. *CN更新 (Check Node Update)*: stem:[L(q_{n \to m})] を集計し、 stem:[L(r_{m \to n})] を出力。
+2. *VN更新 (Variable Node Update)*: stem:[L(r_{m \to n})] を集計し、 stem:[L(q_{n \to m})] および事後LLR stem:[L(Q_n)] を出力。
+
+=== 2. Min-Sum アルゴリズム (MSA) への簡略化
+
+本来の SPA における CN更新は、複雑な非線形関数（ stem:[\tanh] や stem:[\ln] ）を必要としますが、ハードウェア実装では比較器と符号制御のみで構成可能な *Min-Sum アルゴリズム* が広く用いられます。
+
+==== CN更新の演算式
+チェックノード stem:[m] から変数ノード stem:[n] へ送られるメッセージ stem:[L(r_{m \to n})] は、以下のように計算されます。
+
+[stem]
+++++
+L(r_{m \to n}) = \left( \prod_{n' \in \mathcal{N}(m) \setminus \{n\}} \text{sgn}(L(q_{n' \to m})) \right) \times \min_{n' \in \mathcal{N}(m) \setminus \{n\}} |L(q_{n' \to m})|
+++++
+
+* *符号部*: 接続されている他の全 VN からのメッセージ符号の積（XORツリーで実装）。
+* *絶対値部*: 接続されている他の全 VN からのメッセージ絶対値の最小値（比較器ツリーで実装）。
+
+=== 3. Offset Min-Sum (OMS) アルゴリズム
+
+Min-Sum アルゴリズムは演算量を大幅に削減できる反面、絶対値を最小値で近似するため、出力される LLR が本来の値よりも過大評価（Overestimate）される傾向にあります。これを補正するのが *Offset Min-Sum (OMS)* です。
+
+==== OMS による補正
+絶対値の計算結果から、正の定数 *オフセット因子 stem:[\beta]* を差し引きます。
+
+[stem]
+++++
+L(r_{m \to n}) = \text{sgn\_prod} \times \max \left( \min_{n' \in \mathcal{N}(m) \setminus \{n\}} |L(q_{n' \to m})| - \beta, 0 \right)
+++++
+
+* *sgn_prod* は、前項で定義した符号の積を表します。
+* stem:[\beta] を引いた結果が負にならないよう、 0 でクリップします（ stem:[\max( \cdot, 0)] 演算）。
+
+=== 4. VN更新と事後尤度の計算
+
+変数ノード stem:[n] では、通信路からの受信値 stem:[L(q_n)] と、周囲のチェックノードからの情報を単純に加算します。
+
+[stem]
+++++
+L(Q_n) = L(q_n) + \sum_{m \in \mathcal{M}(n)} L(r_{m \to n})
+++++
+
+最終的に、この stem:[L(Q_n)] の符号を確認し、正なら *0* 、負なら *1* と判定します。
