@@ -1,6 +1,6 @@
 # LDPC Decoder OMS Algorithm Document Project
 
-ATSC 3.0 ASIC開発における LDPC デコーダ（Offset Min-Sum アルゴリズム）の理解と、新規参加者への技術継承を目的としたドキュメントプロジェクトです。
+LDPC デコーダ（Offset Min-Sum アルゴリズム）の理解と、新規参加者への技術継承を目的としたドキュメントプロジェクトです。
 
 ## 📖 プロジェクトの目的
 *   **技術の明文化**: Offset Min-Sum (OMS) アルゴリズムの詳細とハードウェア実装への落とし込みを体系化する。
