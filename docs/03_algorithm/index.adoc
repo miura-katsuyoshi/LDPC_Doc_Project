@@ -4,50 +4,47 @@ include::../attributes.adoc[]
 
 本章では、高精度な *Sum-Product Algorithm (SPA)* から、ASIC実装に最適な *Offset Min-Sum (OMS) アルゴリズム* への進化と、その演算プロセスの詳細を解説します。
 
-=== 1. 復号の基本サイクル
+=== 1. 復号の準備と初期化
 
-LDPC復号は、タナーグラフ上の *変数ノード (VN)* と *チェックノード (CN)* の間でメッセージを反復的に交換することで行われます。1回の反復（Iteration）は、以下の2つのステップで構成されます。
-
-1. *CN更新 (Check Node Update)*: stem:[L(q_{n \to m})] を集計し、 stem:[L(r_{m \to n})] を出力。
-2. *VN更新 (Variable Node Update)*: stem:[L(r_{m \to n})] を集計し、 stem:[L(q_{n \to m})] および事後LLR stem:[L(Q_n)] を出力。
-
-=== 2. Min-Sum アルゴリズム (MSA) への簡略化
-
-本来の SPA における CN更新は、複雑な非線形関数（ stem:[\tanh] や stem:[\ln] ）を必要としますが、ハードウェア実装では比較器と符号制御のみで構成可能な *Min-Sum アルゴリズム* が広く用いられます。
-
-==== CN更新の演算式
-チェックノード stem:[m] から変数ノード stem:[n] へ送られるメッセージ stem:[L(r_{m \to n})] は、以下のように計算されます。
+反復復号を開始する前に、各変数ノードのメッセージを通信路からの受信値で初期化します。
+第 0 反復（初期値）として、各 VN stem:[n] から接続される全 CN stem:[m \in \mathcal{M}(n)] に対して、以下の値を設定します。
 
 [stem]
 ++++
-L(r_{m \to n}) = \left( \prod_{n' \in \mathcal{N}(m) \setminus \{n\}} \text{sgn}(L(q_{n' \to m})) \right) \times \min_{n' \in \mathcal{N}(m) \setminus \{n\}} |L(q_{n' \to m})|
+L(q_{n \to m}) = L(q_n)
 ++++
 
-* *符号部*: 接続されている他の全 VN からのメッセージ符号の積（XORツリーで実装）。
-* *絶対値部*: 接続されている他の全 VN からのメッセージ絶対値の最小値（比較器ツリーで実装）。
+=== 2. チェックノード (CN) 更新：OMS アルゴリズム
 
-=== 3. Offset Min-Sum (OMS) アルゴリズム
+チェックノード stem:[m] では、接続されている全 VN（ただし、送り先の VN stem:[n] を除く）からのメッセージを集計し、新たな信頼度情報 stem:[L(r_{m \to n})] を計算します。
 
-Min-Sum アルゴリズムは演算量を大幅に削減できる反面、絶対値を最小値で近似するため、出力される LLR が本来の値よりも過大評価（Overestimate）される傾向にあります。これを補正するのが *Offset Min-Sum (OMS)* です。
-
-==== OMS による補正
-絶対値の計算結果から、正の定数 *オフセット因子 stem:[\beta]* を差し引きます。
-
+==== 演算式
 [stem]
 ++++
-L(r_{m \to n}) = \text{sgn\_prod} \times \max \left( \min_{n' \in \mathcal{N}(m) \setminus \{n\}} |L(q_{n' \to m})| - \beta, 0 \right)
+L(r_{m \to n}) = \left( \prod_{n' \in \mathcal{N}(m) \setminus \{n\}} \text{sgn}(L(q_{n' \to m})) \right) \times \max \left( \min_{n' \in \mathcal{N}(m) \setminus \{n\}} |L(q_{n' \to m})| - \beta, 0 \right)
 ++++
 
-* *sgn_prod* は、前項で定義した符号の積を表します。
-* stem:[\beta] を引いた結果が負にならないよう、 0 でクリップします（ stem:[\max( \cdot, 0)] 演算）。
+* *符号部*: XORツリーにより、自分を除くメッセージの符号の積（偶奇）を求めます。
+* *絶対値部*: 比較器ツリーにより最小値を求め、オフセット因子 stem:[\beta] を減算した後、0 でクリップします。
 
-=== 4. VN更新と事後尤度の計算
+=== 3. 変数ノード (VN) 更新
 
-変数ノード stem:[n] では、通信路からの受信値 stem:[L(q_n)] と、周囲のチェックノードからの情報を単純に加算します。
+変数ノード stem:[n] では、受信値 stem:[L(q_n)] と、周囲の全 CN からの情報を集計し、次回の反復で CN へ送るメッセージおよび事後尤度を計算します。
 
+==== VN to CN メッセージの更新
+[stem]
+++++
+L(q_{n \to m}) = L(q_n) + \sum_{m' \in \mathcal{M}(n) \setminus \{m\}} L(r_{m' \to n})
+++++
+※特定の CN stem:[m] へ送る情報は、**その CN 自身から受け取った情報を除いた**合計値となります。
+
+==== 事後 LLR (判定用) の計算
 [stem]
 ++++
 L(Q_n) = L(q_n) + \sum_{m \in \mathcal{M}(n)} L(r_{m \to n})
 ++++
+全ての CN からの情報を加算した結果を用い、判定ビット stem:[\hat{x}_n] を決定します（ stem:[L(Q_n) > 0] ならば *0* 、さもなくば *1* ）。
 
-最終的に、この stem:[L(Q_n)] の符号を確認し、正なら *0* 、負なら *1* と判定します。
+=== 4. 収束判定と早期終了
+
+毎回の反復後、得られた暫定の推定語 stem:[\hat{\mathbf{x}}] がパリティ検査行列 stem:[H] の条件（ stem:[H\hat{\mathbf{x}} = \mathbf{0}] ）を全て満たした場合、復号成功とみなし、最大反復回数に達する前であっても処理を終了します。これは ASIC 実装において、平均消費電力の低減とスループットの向上に大きく寄与します。
