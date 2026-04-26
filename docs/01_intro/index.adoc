@@ -6,7 +6,7 @@ include::../attributes.adoc[]
 
 本文書では、LDPC符号の数学的定義から、実用的な復号アルゴリズムまで（Sum-Product / Min-Sum）を体系的に解説します。特に、数式のみでは捉えにくい「行列とグラフの対応」や「メッセージの動き」について、図解を用いて直感的に理解できるよう努めます、
 
-本プロジェクトでは、<<Uchikawa2020>> および <<Chen2005>> を参考に、以下の節で示す用語・変数定義を使用します。変数は主に <<Chen2005>> に準拠していますが、 <<Uchikawa2020>> との対応も示しています。
+本プロジェクトでは、<<Uchikawa2021>> および <<Chen2005>> を参考に、以下の節で示す用語・変数定義を使用します。変数は主に <<Chen2005>> に準拠していますが、 <<Uchikawa2021>> との対応も示しています。
 
 == 用語・変数定義
 
@@ -38,38 +38,41 @@ include::../attributes.adoc[]
 | stem:[\boldsymbol{x}]（イタリック体ボールド） | 行ベクトル
 | stem:[\boldsymbol{x}^{\mathrm{T}}] | 行ベクトル stem:[\boldsymbol{x}] の転置行列、即ち、列ベクトル
 | stem:[x_m] | 行ベクトル stem:[\boldsymbol{x}] の stem:[m]番目の要素。スカラー値
-| stem:[\mathcal{N}]（カリグラフ体） | 集合
-| stem:[\mathcal{N}(m)] | 集合 stem:[\mathcal{N}] の stem:[m] 番目の要素。スカラー値
+| stem:[\mathcal{N}(m)]（カリグラフ体） | 集合
 | stem:[\beta] | スカラー値
 |===
 
 === ノードとインデックスに関する変数
 
-LDPC符号は、検査行列 stem:[\mathbf{H}] の「行」と「列」をノードとするグラフ構造（タナーグラフ）で表現されます。
-本ドキュメントでは、数式と図の整合性を保つため、インデックスは **1始まり** で統一します。
+LDPC符号は、検査行列 stem:[\mathbf{H}] の「行」と「列」をノードとするグラフ構造（タナーグラフ）で表現されます。このグラフのノードおよび検査行列
+ stem:[\mathbf{H}] のインデックスに関わる変数を <<tbl_node_index>> に示します。<<tbl_node_index>> では、<<Uchikawa2021>> での対応する変数の記号についても示します。なお、本文書では、数式と図の整合性を保つため、インデックスは *1始まり* とします。
 
-[cols="1,1,3", options="header"]
+[cols="1,1,5", options="header"]
+[[tbl_node_index]]
+.タナーグラフのノードと検査行列 stem:[\mathbf{H}] のインデックスに関わる変数
 
 |===
-| 記号 | <<Uchikawa2020>>での記号 | 定義
+| 記号 | <<Uchikawa2021>>での記号 | 定義
 | stem:[n] | stem:[j] | 変数ノード (Variable Node, VN) のインデックス。 stem:[n = 1, \dots, N]
 | stem:[m] | stem:[i] | チェックノード (Check Node, CN) のインデックス。 stem:[m = 1, \dots, M]
 | stem:[\mathcal{N}(m)] | stem:[\mathcal{J}(i)] | チェックノード stem:[m] に接続されている全変数ノードのインデックス集合
 | stem:[\mathcal{M}(n)] | stem:[\mathcal{I}(j)] | 変数ノード stem:[n] に接続されている全チェックノードのインデックス集合
 |===
 
-=== メッセージと尤度 (LLR)に関する変数
+=== メッセージと尤度（LLR）に関する変数
 
-復号プロセスでは、エッジ（枝）を介して以下の対数尤度比（LLR）がやり取りされます。
+復号プロセスでは、エッジ（枝）を介して以下のメッセージ（対数尤度比（LLR））がやり取りされます。このメッセージと尤度に関する変数を <<tbl_message_llr>> に示します。<<tbl_message_llr>> では、<<Uchikawa2021>> での対応する変数の記号についても示します。但し、<<tbl_message_llr>> では対数尤度を扱わず、確率をメッセージとして送信するため、厳密に同じ変数を指すものではありません。
 
-[cols="1,3", options="header"]
+[cols="1,1,5", options="header"]
+[[tbl_message_llr]]
+.メッセージと尤度（LLR）に関する変数
 
 |===
-| 記号 | 定義
-| stem:[L(q_n)] | **受信LLR**: 通信路から入力される初期対数尤度比
-| stem:[L(q_{n \to m})] | **VN to CN メッセージ**: VN stem:[n] から CN stem:[m] へ送られる対数尤度比
-| stem:[L(r_{m \to n})] | **CN to VN メッセージ**: CN stem:[m] から VN stem:[n] へ送られる対数尤度比
-| stem:[L(Q_n)] | **事後LLR**: 反復計算の結果得られる、第 stem:[n] ビットの最終的な対数尤度比
+| 記号 |<<Uchikawa2021>>での記号 | 定義
+| stem:[L(q_n)] | stem:[P_{Y\|X}(y_j\|x_j)] |  *受信LLR*: 通信路から入力される初期対数尤度比
+| stem:[L(q_{n \to m})] | stem:[M_{v_j\to c_i}(x_j)] | *VN to CN メッセージ*: VN stem:[n] から CN stem:[m] へ送られる対数尤度比
+| stem:[L(r_{m \to n})] | stem:[M_{c_i\to v_j}(x_j)] |  *CN to VN メッセージ*: CN stem:[m] から VN stem:[n] へ送られる対数尤度比
+| stem:[L(Q_n)] | stem:[g(x_j)] | *事後LLR*: 反復計算の結果得られる、第 stem:[n] ビットの最終的な対数尤度比
 |===
 
 === Offset Min-Sum (OMS) 固有の変数
@@ -78,9 +81,9 @@ LDPC符号は、検査行列 stem:[\mathbf{H}] の「行」と「列」をノー
 
 |===
 | 記号 | 定義
-| stem:[\beta] | **オフセット因子 (Offset factor)**: Min-Sum演算の過大評価を補正するための正の定数
+| stem:[\beta] | *オフセット因子 (Offset factor)*: Min-Sum演算の過大評価を補正するための正の定数
 |===
 == 参考文献
 [bibliography]
-- [[[Uchikawa2020]]] 内川 浩典, "低密度パリティ検査符号 (LDPC 符号) ―Robert G. Gallager 先生の 2020 年日本国際賞受賞に寄せて," 電子情報通信学会 基礎・境界ソサイエティ Fundamentals Review, vol. 14, no. 3, pp. 217-228, 2021.
+- [[[Uchikawa2021]]] 内川 浩典, "低密度パリティ検査符号 (LDPC 符号) ―Robert G. Gallager 先生の 2020 年日本国際賞受賞に寄せて," 電子情報通信学会 基礎・境界ソサイエティ Fundamentals Review, vol. 14, no. 3, pp. 217-228, 2021.
 - [[[Chen2005]]] J. Chen, A. Dholakia, E. Eleftheriou, M. P. C. Fossorier, and X.-Y. Hu, "Reduced-complexity decoding of LDPC codes," IEEE Trans. Commun., vol. 53, no. 8, pp. 1288-1299, Aug. 2005.
