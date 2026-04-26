@@ -11,4 +11,5 @@
 :table-caption: 表
 :equation-caption: 式
 :stem: latexmath
-:xrefstyle: full
+:xrefstyle: short
+:diagram-order: plantuml

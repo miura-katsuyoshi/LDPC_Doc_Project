@@ -1,23 +1,66 @@
 include::../attributes.adoc[]
 
-== 用語・変数の定義
+== はじめに
 
-本プロジェクトでは、ドキュメントおよび今後の設計において、以下の用語・変数定義を一貫して使用します。
-本定義は、符号理論の基礎（内川論文）と、実装アルゴリズムの標準（Chen 論文）に基づいています。
+低密度パリティ検査（Low-Density Parity-Check: LDPC）符号は、1962年に Robert G. Gallager によって提案され、シャノン限界に迫る高い性能を持つ誤り訂正符号です。現在は 5G 通信や放送規格（DVB-S2等）で広く採用されています。
 
-=== 1. ノードとインデックス
+本文書では、LDPC符号の数学的定義から、実用的な復号アルゴリズムまで（Sum-Product / Min-Sum）を体系的に解説します。特に、数式のみでは捉えにくい「行列とグラフの対応」や「メッセージの動き」について、図解を用いて直感的に理解できるよう努めます、
+
+本プロジェクトでは、<<Uchikawa2020>> および <<Chen2005>> を参考に、以下の節で示す用語・変数定義を使用します。変数は主に <<Chen2005>> に準拠していますが、 <<Uchikawa2020>> との対応も示しています。
+
+== 用語・変数定義
+
+=== 用語
+
+本文書で用いる主要な用語を<<tbl_term>>に示します。
 
 [cols="1,3", options="header"]
+[[tbl_term]]
+.用語
 
 |===
-| 記号 | 定義
-| stem:[n] | 変数ノード (Variable Node, VN) のインデックス。 stem:[n = 1, \dots, N]
-| stem:[m] | チェックノード (Check Node, CN) のインデックス。 stem:[m = 1, \dots, M]
-| stem:[\mathcal{N}(m)] | チェックノード stem:[m] に接続されている全変数ノードのインデックス集合
-| stem:[\mathcal{M}(n)] | 変数ノード stem:[n] に接続されている全チェックノードのインデックス集合
+| 用語 | 説明
+| タナーグラフ（Tanner graph） | パリティ検査行列 stem:[\mathbf{H}] から作成されるグラフ
+| TBD | TBD
 |===
 
-=== 2. メッセージと尤度 (LLR)
+=== 変数・数式の表記法
+
+本文書で用いる主要な変数・数式の表記法を<<tbl_varexp>>に示します。
+
+[cols="2,3", options="header"]
+[[tbl_varexp]]
+.変数・数式の表記法
+
+|===
+| 表記例 | 説明
+| stem:[\mathbf{H}]（直立体ボールド） | 行列
+| stem:[\boldsymbol{x}]（イタリック体ボールド） | 行ベクトル
+| stem:[\boldsymbol{x}^{\mathrm{T}}] | 行ベクトル stem:[\boldsymbol{x}] の転置行列、即ち、列ベクトル
+| stem:[x_m] | 行ベクトル stem:[\boldsymbol{x}] の stem:[m]番目の要素。スカラー値
+| stem:[\mathcal{N}]（カリグラフ体） | 集合
+| stem:[\mathcal{N}(m)] | 集合 stem:[\mathcal{N}] の stem:[m] 番目の要素。スカラー値
+| stem:[\beta] | スカラー値
+|===
+
+=== ノードとインデックスに関する変数
+
+LDPC符号は、検査行列 stem:[\mathbf{H}] の「行」と「列」をノードとするグラフ構造（タナーグラフ）で表現されます。
+本ドキュメントでは、数式と図の整合性を保つため、インデックスは **1始まり** で統一します。
+
+[cols="1,1,3", options="header"]
+
+|===
+| 記号 | <<Uchikawa2020>>での記号 | 定義
+| stem:[n] | stem:[j] | 変数ノード (Variable Node, VN) のインデックス。 stem:[n = 1, \dots, N]
+| stem:[m] | stem:[i] | チェックノード (Check Node, CN) のインデックス。 stem:[m = 1, \dots, M]
+| stem:[\mathcal{N}(m)] | stem:[\mathcal{J}(i)] | チェックノード stem:[m] に接続されている全変数ノードのインデックス集合
+| stem:[\mathcal{M}(n)] | stem:[\mathcal{I}(j)] | 変数ノード stem:[n] に接続されている全チェックノードのインデックス集合
+|===
+
+=== メッセージと尤度 (LLR)に関する変数
+
+復号プロセスでは、エッジ（枝）を介して以下の対数尤度比（LLR）がやり取りされます。
 
 [cols="1,3", options="header"]
 
@@ -29,7 +72,7 @@ include::../attributes.adoc[]
 | stem:[L(Q_n)] | **事後LLR**: 反復計算の結果得られる、第 stem:[n] ビットの最終的な対数尤度比
 |===
 
-=== 3. Offset Min-Sum (OMS) 固有の変数
+=== Offset Min-Sum (OMS) 固有の変数
 
 [cols="1,3", options="header"]
 
@@ -37,7 +80,7 @@ include::../attributes.adoc[]
 | 記号 | 定義
 | stem:[\beta] | **オフセット因子 (Offset factor)**: Min-Sum演算の過大評価を補正するための正の定数
 |===
-
-=== 参考文献
-* 内川 浩典, "低密度パリティ検査符号 (LDPC 符号) ―Robert G. Gallager 先生の 2020 年日本国際賞受賞に寄せて," 電子情報通信学会 基礎・境界ソサイエティ Fundamentals Review, vol. 14, no. 3, pp. 217-228, 2021.
-* J. Chen, A. Dholakia, E. Eleftheriou, M. P. C. Fossorier, and X.-Y. Hu, "Reduced-complexity decoding of LDPC codes," IEEE Trans. Commun., vol. 53, no. 8, pp. 1288-1299, Aug. 2005.
+== 参考文献
+[bibliography]
+- [[[Uchikawa2020]]] 内川 浩典, "低密度パリティ検査符号 (LDPC 符号) ―Robert G. Gallager 先生の 2020 年日本国際賞受賞に寄せて," 電子情報通信学会 基礎・境界ソサイエティ Fundamentals Review, vol. 14, no. 3, pp. 217-228, 2021.
+- [[[Chen2005]]] J. Chen, A. Dholakia, E. Eleftheriou, M. P. C. Fossorier, and X.-Y. Hu, "Reduced-complexity decoding of LDPC codes," IEEE Trans. Commun., vol. 53, no. 8, pp. 1288-1299, Aug. 2005.
