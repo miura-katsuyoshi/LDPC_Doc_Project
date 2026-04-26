@@ -38,7 +38,7 @@ include::../attributes.adoc[]
 | stem:[\boldsymbol{x}]（イタリック体ボールド） | 行ベクトル
 | stem:[\boldsymbol{x}^{\mathrm{T}}] | 行ベクトル stem:[\boldsymbol{x}] の転置行列、即ち、列ベクトル
 | stem:[x_m] | 行ベクトル stem:[\boldsymbol{x}] の stem:[m]番目の要素。スカラー値
-| stem:[\mathcal{N}(m)]（カリグラフ体） | 集合
+| stem:[\mathcal{N}(m)]（カリグラフ体） | 集合（詳細は <<tbl_node_index>> 参照）
 | stem:[\beta] | スカラー値
 |===
 
@@ -61,7 +61,7 @@ LDPC符号は、検査行列 stem:[\mathbf{H}] の「行」と「列」をノー
 
 === メッセージと尤度（LLR）に関する変数
 
-復号プロセスでは、エッジ（枝）を介して以下のメッセージ（対数尤度比（LLR））がやり取りされます。このメッセージと尤度に関する変数を <<tbl_message_llr>> に示します。<<tbl_message_llr>> では、<<Uchikawa2021>> での対応する変数の記号についても示します。但し、<<tbl_message_llr>> では対数尤度を扱わず、確率をメッセージとして送信するため、厳密に同じ変数を指すものではありません。
+復号プロセスでは、エッジ（枝）を介して以下のメッセージ（対数尤度比（LLR））がやり取りされます。このメッセージと尤度に関する変数を <<tbl_message_llr>> に示します。<<tbl_message_llr>> では、<<Uchikawa2021>> での対応する変数の記号についても示します。但し、<<Uchikawa2021>> では対数尤度を扱わず、確率をメッセージとして送信するため、厳密に同じ変数を指すものではありません。
 
 [cols="1,1,5", options="header"]
 [[tbl_message_llr]]
@@ -77,7 +77,7 @@ LDPC符号は、検査行列 stem:[\mathbf{H}] の「行」と「列」をノー
 
 === Offset Min-Sum (OMS) 固有の変数
 
-[cols="1,3", options="header"]
+[cols="1,6", options="header"]
 
 |===
 | 記号 | 定義
